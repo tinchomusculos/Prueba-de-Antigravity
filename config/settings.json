@@ -1,0 +1,90 @@
+{
+  "window_size": {
+    "width": 1680,
+    "height": 976
+  },
+  "window_origin": {
+    "x": 0,
+    "y": 32
+  },
+  "rois": {
+    "minigame": {
+      "x": 240,
+      "y": 140,
+      "width": 1200,
+      "height": 710
+    },
+    "battle_menu": {
+      "x": 540,
+      "y": 740,
+      "width": 1110,
+      "height": 220
+    },
+    "loomian_name": {
+      "x": 1410,
+      "y": 200,
+      "width": 230,
+      "height": 70
+    },
+    "loomian_sprite": {
+      "x": 1100,
+      "y": 380,
+      "width": 420,
+      "height": 260
+    },
+    "item_notice": {
+      "x": 150,
+      "y": 840,
+      "width": 1380,
+      "height": 120
+    }
+  },
+  "ui_points": {
+    "cast_button": {
+      "x": 840,
+      "y": 488
+    },
+    "fight_button": {
+      "x": 1095,
+      "y": 795
+    },
+    "run_button": {
+      "x": 1095,
+      "y": 905
+    },
+    "cancel_button": {
+      "x": 1095,
+      "y": 905
+    },
+    "corrupt_move_slot": {
+      "x": 755,
+      "y": 850
+    },
+    "item_notice_close": {
+      "x": 840,
+      "y": 900
+    }
+  },
+  "timeouts": {
+    "IDLE_OR_CAST": 5.0,
+    "WAITING_MINIGAME": 20.0,
+    "SOLVING_DOTS": 12.0,
+    "RESOLVING_OUTCOME": 10.0,
+    "IN_BATTLE": 30.0,
+    "COOLDOWN": 2.0
+  },
+  "capture_rate_limit": {
+    "idle_fps": 4.0,
+    "solving_dots_fps": 30.0
+  },
+  "kill_switch_key": "F8",
+  "stop_after_corrupt": false,
+  "template_match_threshold": 0.85,
+  "min_confidence": 0.80,
+  "templates_dir": "assets/templates",
+  "paths": {
+    "run_list": "config/run_list.json",
+    "corruptos_csv": "data/corruptos.csv",
+    "alert_wav": "assets/alert.wav"
+  }
+}
