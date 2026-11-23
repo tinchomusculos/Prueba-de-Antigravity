@@ -32,11 +32,17 @@
       "width": 420,
       "height": 260
     },
-    "item_notice": {
+    "battle_banner": {
       "x": 150,
       "y": 840,
       "width": 1380,
-      "height": 120
+      "height": 130
+    },
+    "enemy_card": {
+      "x": 1230,
+      "y": 185,
+      "width": 430,
+      "height": 190
     }
   },
   "ui_points": {
@@ -75,7 +81,27 @@
   },
   "capture_rate_limit": {
     "idle_fps": 4.0,
+    "resolving_outcome_fps": 12.0,
     "solving_dots_fps": 30.0
+  },
+  "resolving": {
+    "fishing_return_confirm_s": 2.0,
+    "dark_frame_mean_threshold": 25.0
+  },
+  "form_detection": {
+    "alpha_sparkle_hsv_lower": [92, 65, 165],
+    "alpha_sparkle_hsv_upper": [108, 165, 255],
+    "gamma_sparkle_hsv_lower": [72, 65, 165],
+    "gamma_sparkle_hsv_upper": [85, 220, 255],
+    "sparkle_min_pixels": 45,
+    "normal_palette_min_score": 0.78,
+    "form_confirm_frames": 3,
+    "unknown_shards_dir": "debug/unknown_shards"
+  },
+  "solving": {
+    "dot_move_delay_s": 0.04,
+    "min_bar_ratio": 0.08,
+    "max_solving_retries": 5
   },
   "kill_switch_key": "F8",
   "stop_after_corrupt": false,

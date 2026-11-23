@@ -19,6 +19,10 @@ logger = logging.getLogger(__name__)
 CSV_HEADER = ("timestamp", "loomian", "shard")
 
 
+class RunListError(RuntimeError):
+    """Error controlado cuando ``run_list.json`` no se puede leer o tiene formato inválido."""
+
+
 class InputDriver(Protocol):
     """Interfaz para acciones de mouse y teclado (real o dry-run)."""
 
@@ -101,19 +105,43 @@ class BotController:
     # run_list.json (hot reload sin caché y escritura atómica)
     # ------------------------------------------------------------------
 
+    def _read_run_list_data(self) -> dict[str, Any]:
+        """Lee y valida la estructura de ``run_list.json``.
+
+        Lanza ``RunListError`` ante JSON inválido, error de lectura o estructura incorrecta.
+        """
+        try:
+            with self.run_list_path.open("r", encoding="utf-8") as fh:
+                data = json.load(fh)
+        except json.JSONDecodeError as exc:
+            raise RunListError(
+                f"run_list.json inválido ({self.run_list_path}): JSON mal formado en "
+                f"línea {exc.lineno}, columna {exc.colno}: {exc.msg}"
+            ) from exc
+        except OSError as exc:
+            raise RunListError(f"run_list.json inválido ({self.run_list_path}): {exc}") from exc
+
+        if not isinstance(data, dict):
+            raise RunListError(
+                f"run_list.json inválido ({self.run_list_path}): se esperaba un objeto JSON."
+            )
+        raw_list = data.get("run_list", [])
+        if not isinstance(raw_list, list) or not all(isinstance(i, str) for i in raw_list):
+            raise RunListError(
+                f"run_list.json inválido ({self.run_list_path}): 'run_list' debe ser una lista de textos."
+            )
+        return data
+
     def load_run_list(self) -> list[str]:
-        """Lee ``run_list.json`` desde disco en cada llamada (sin caché)."""
+        """Lee ``run_list.json`` desde disco en cada llamada (sin caché).
+
+        Lanza ``RunListError`` si el archivo existe pero es inválido.
+        """
         if not self.run_list_path.is_file():
             logger.warning("run_list.json no existe en %s; devolviendo lista vacía.", self.run_list_path)
             return []
-
-        with self.run_list_path.open("r", encoding="utf-8") as fh:
-            data = json.load(fh)
-
-        raw_list = data.get("run_list", [])
-        if not isinstance(raw_list, list):
-            raise ValueError(f"'run_list' en {self.run_list_path} debe ser una lista.")
-        return [str(item).strip() for item in raw_list if str(item).strip()]
+        data = self._read_run_list_data()
+        return [item.strip() for item in data.get("run_list", []) if item.strip()]
 
     def is_in_run_list(self, name: str) -> bool:
         """Verifica (case-insensitive) si un Loomian figura en ``run_list.json`` en vivo."""
@@ -126,6 +154,7 @@ class BotController:
         """Agrega un nombre a ``run_list.json`` sin duplicados (case-insensitive) de forma atómica.
 
         Devuelve ``True`` si el nombre fue agregado, o ``False`` si ya existía o era vacío.
+        Lanza ``RunListError`` si el archivo existente es inválido (no lo sobrescribe).
         """
         cleaned = name.strip()
         if not cleaned:
@@ -135,12 +164,9 @@ class BotController:
 
         data: dict[str, Any] = {"run_list": []}
         if self.run_list_path.is_file():
-            with self.run_list_path.open("r", encoding="utf-8") as fh:
-                loaded = json.load(fh)
-            if isinstance(loaded, dict):
-                data = loaded
+            data = self._read_run_list_data()
 
-        existing = [str(item).strip() for item in data.get("run_list", []) if str(item).strip()]
+        existing = [item.strip() for item in data.get("run_list", []) if item.strip()]
         if any(entry.casefold() == cleaned.casefold() for entry in existing):
             logger.info("'%s' ya existe en %s; no se duplica.", cleaned, self.run_list_path)
             return False

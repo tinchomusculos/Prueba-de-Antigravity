@@ -1,0 +1,225 @@
+{
+  "_instructions": "Completa 'active' (true/false) y 'expected_nodes' (entero o null si no aplica) para evaluar precisi\u00f3n, recall y exactitud de conteo de nodos.",
+  "frames": {
+    "frames/frame_0000_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0001_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0002_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0003_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0004_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0005_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0005_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0006_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0007_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0008_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0009_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0010_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0011_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames/frame_0011_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0000_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0001_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0002_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0003_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0004_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0005_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0006_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0007_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip2/clip2_0008_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0000_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0000_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0001_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0001_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0002_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0002_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0003_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0003_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0004_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0004_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0005_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0005_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0006_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0006_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0007_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0007_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0008_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0008_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0009_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0009_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0010_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0010_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0011_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0011_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0012_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0012_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0013_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0013_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0014_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0014_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0015_000s.png": {
+      "active": null,
+      "expected_nodes": null
+    },
+    "frames_clip3/clip3_0015_500s.png": {
+      "active": null,
+      "expected_nodes": null
+    }
+  }
+}

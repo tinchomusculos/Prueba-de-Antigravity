@@ -8,7 +8,7 @@ Resolver la secuencia de puntos conectados por líneas (empezando por el punto v
 
 Detectar el resultado del ciclo:
 
-Ítem basura / pesca sin combate (ej. Rusty Can, Musty Boot): esperar cierre del aviso y continuar.
+Pesca sin combate (retorno estable a la vista de pesca): esperar confirmación y continuar el ciclo.
 
 Combate contra Loomian: identificar nombre y forma (normal, corrupto, alpha, gamma) y actuar según las reglas definidas.
 
@@ -43,7 +43,11 @@ Al ingresar a batalla y detectarse el menú principal (`Fight`, `Items`, `Run`, 
 3. Estructura del Proyecto
 Plaintext
 .
-├── requirements.txt             # Dependencias Python permitidas
+├── README.md                    # Guía de instalación, uso (--dry-run/--no-dry-run), kill-switch y calibración
+├── requirements.txt             # Dependencias Python permitidas (versiones fijadas)
+├── .github/
+│   └── workflows/
+│       └── tests.yml            # Workflow de CI con pytest
 ├── assets/
 │   └── templates/               # Plantillas PNG para template matching
 ├── config/
@@ -64,15 +68,20 @@ Plaintext
 │   ├── __init__.py
 │   ├── screen_capture.py        # Captura de pantalla / ROI con rate-limit configurable
 │   ├── minigame_tracker.py      # Detección de barra, nodo verde inicial, líneas y orden de nodos
-│   └── encounter_classifier.py  # Clasifica ítem vs combate; detecta nombre y forma del Loomian
+│   └── encounter_classifier.py  # Clasifica retorno/combate, banners, shards y forma del Loomian
 ├── debug/
 │   ├── __init__.py
-│   └── visualizer.py            # Dibuja ROIs, centros, orden de puntos y etiquetas sobre frames/video
+│   ├── visualizer.py            # Dibuja ROIs, centros, orden de puntos y etiquetas sobre frames/video
+│   ├── extract_frames.py        # Extrae frames PNG desde video y recorta ROIs de referencia
+│   ├── evaluate_tracker.py      # Evalúa MinigameTracker sobre samples/frames* vs ground_truth.json
+│   └── validate_templates.py    # Valida templates de assets/templates/ contra samples/ sin falsos positivos
 ├── tests/
 │   ├── __init__.py
 │   ├── test_controller.py
+│   ├── test_extract_frames.py
+│   ├── test_kill_switch.py
 │   ├── test_state_machine.py
-│   └── test_kill_switch.py
+│   └── test_vision.py
 └── main.py                      # Punto de entrada, flags (--dry-run, --no-dry-run, --debug), logs y loop principal
 4. Máquina de Estados
 Estados principales con timeout por estado y kill-switch global (F8 o tecla configurada):
@@ -85,7 +94,9 @@ SOLVING_DOTS: obtiene la lista ordenada de coordenadas (x, y) siguiendo el nodo 
 
 RESOLVING_OUTCOME:
 
-Si detecta aviso de ítem -> espera cierre y pasa a COOLDOWN.
+Acumula indicios transitorios (banners de corrupto y destellos alpha/gamma).
+
+Si detecta retorno estable a la vista de pesca (sin oscurecimiento por fade) -> pasa a COOLDOWN.
 
 Si detecta interfaz de combate / menú (Fight, Items, Run, Loomians) -> pasa a IN_BATTLE.
 

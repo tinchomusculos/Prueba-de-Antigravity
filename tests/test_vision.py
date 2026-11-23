@@ -11,6 +11,7 @@ import pytest
 from core.types import Form, Point, ROI
 from vision.encounter_classifier import EncounterClassifier
 from vision.minigame_tracker import MinigameTracker
+from vision.screen_capture import ScreenCapture
 
 
 def _draw_minigame_frame() -> tuple[np.ndarray, ROI, list[Point]]:
@@ -168,10 +169,9 @@ def test_classify_encounter_rejects_mismatched_window_size(tmp_path: Path) -> No
     assert result.confidence == 0.0
 
 
-def test_detects_item_battle_and_fishing_return_templates(tmp_path: Path) -> None:
+def test_detects_battle_menu_and_fishing_return_templates(tmp_path: Path) -> None:
     ui_dir = tmp_path / "ui"
     templates = {
-        "item_notice": _pattern(10),
         "fight": _pattern(11),
         "items": _pattern(12),
         "run": _pattern(13),
@@ -182,15 +182,11 @@ def test_detects_item_battle_and_fishing_return_templates(tmp_path: Path) -> Non
         _write_template(ui_dir, name, template)
 
     rois = {
-        "item_notice": ROI(20, 20, 160, 80),
         "battle_menu": ROI(200, 500, 880, 200),
         "fishing_return": ROI(20, 20, 160, 80),
     }
     classifier = _classifier(tmp_path, rois)
     frame = np.zeros((720, 1280, 3), dtype=np.uint8)
-
-    frame[22:46, 22:76] = templates["item_notice"]
-    assert classifier.detect_item_notice(frame)
 
     battle_frame = np.zeros_like(frame)
     for idx, key in enumerate(("fight", "items", "run", "loomians")):
@@ -202,3 +198,113 @@ def test_detects_item_battle_and_fishing_return_templates(tmp_path: Path) -> Non
     fishing_frame = np.zeros_like(frame)
     fishing_frame[22:46, 22:76] = templates["fishing_return"]
     assert classifier.detect_fishing_return(fishing_frame)
+
+
+def test_detect_shard_drop_by_words_two_lines_mr_and_unknown(tmp_path: Path) -> None:
+    shard_word = _pattern(20, shape=(24, 54, 3))
+    attack_word = _pattern(21, shape=(24, 64, 3))
+    speed_word = _pattern(22, shape=(24, 60, 3))
+    m_glyph = _pattern(23, shape=(24, 22, 3))
+    r_glyph = _pattern(24, shape=(24, 22, 3))
+
+    _write_template(tmp_path / "ui", "shard_word", shard_word)
+    _write_template(tmp_path / "shards", "attack", attack_word)
+    _write_template(tmp_path / "shards", "speed", speed_word)
+    _write_template(tmp_path / "shards", "m", m_glyph)
+    _write_template(tmp_path / "shards", "r", r_glyph)
+
+    classifier = _classifier(tmp_path, {"battle_banner": ROI(100, 560, 1000, 130)})
+
+    # Caso 1: Attack M en la misma línea
+    frame_am = np.zeros((720, 1280, 3), dtype=np.uint8)
+    frame_am[580:604, 700:764] = attack_word
+    frame_am[580:604, 772:794] = m_glyph
+    frame_am[580:604, 804:858] = shard_word
+    assert classifier.detect_shard_drop(frame_am) == "Attack M Shard"
+
+    # Caso 2: Attack R partido en 2 líneas ("Attack" al final de línea 1, "R Shard!" en línea 2)
+    frame_ar_2line = np.zeros((720, 1280, 3), dtype=np.uint8)
+    frame_ar_2line[580:604, 1010:1074] = attack_word
+    frame_ar_2line[630:654, 120:142] = r_glyph
+    frame_ar_2line[630:654, 152:206] = shard_word
+    assert classifier.detect_shard_drop(frame_ar_2line) == "Attack R Shard"
+
+    # Caso 3: Speed Shard partido en 2 líneas ("Speed" en línea 1, "Shard" en línea 2)
+    frame_speed = np.zeros((720, 1280, 3), dtype=np.uint8)
+    frame_speed[580:604, 980:1040] = speed_word
+    frame_speed[630:654, 120:174] = shard_word
+    assert classifier.detect_shard_drop(frame_speed) == "Speed Shard"
+
+    # Caso 4: Drop confirmado ("Shard" visible) pero stat ilegible -> "Unknown"
+    frame_unknown = np.zeros((720, 1280, 3), dtype=np.uint8)
+    frame_unknown[630:654, 150:204] = shard_word
+    assert classifier.detect_shard_drop(frame_unknown) == "Unknown"
+
+    # Caso 5: Sin banner de shard -> None
+    assert classifier.detect_shard_drop(np.zeros((720, 1280, 3), dtype=np.uint8)) is None
+
+
+def test_normal_palette_positive_evidence_rejects_recolor_and_missing(tmp_path: Path) -> None:
+    sprite_roi = ROI(700, 100, 200, 200)
+    frame_normal = np.zeros((720, 1280, 3), dtype=np.uint8)
+    # Bloque amarillo brillante simulando sprite normal
+    frame_normal[140:210, 750:820] = (0, 230, 240)
+    hist = EncounterClassifier.extract_sprite_palette(frame_normal[100:300, 700:900])
+    assert hist is not None
+
+    pal_dir = tmp_path / "forms" / "palettes"
+    pal_dir.mkdir(parents=True, exist_ok=True)
+    import json as _json
+
+    (pal_dir / "goppie.json").write_text(
+        _json.dumps({"histogram": hist.tolist()}),
+        encoding="utf-8",
+    )
+
+    classifier = _classifier(
+        tmp_path,
+        {"loomian_name": ROI(20, 20, 140, 70), "loomian_sprite": sprite_roi},
+    )
+
+    form_ok, score_ok = classifier.classify_form(frame_normal, species_name="Goppie")
+    assert form_ok == Form.NORMAL
+    assert score_ok >= 0.99
+
+    # Recoloreo del sprite -> debe caer bajo umbral y devolver Form.UNKNOWN (nunca falso NORMAL)
+    frame_recolor = np.zeros((720, 1280, 3), dtype=np.uint8)
+    frame_recolor[140:210, 750:820] = (230, 200, 0)
+    form_bad, _ = classifier.classify_form(frame_recolor, species_name="Goppie")
+    assert form_bad == Form.UNKNOWN
+
+    # Especie sin paleta de referencia -> Form.UNKNOWN
+    form_missing, _ = classifier.classify_form(frame_normal, species_name="Arketta")
+    assert form_missing == Form.UNKNOWN
+
+
+def test_screen_capture_fallback_when_ensure_mss_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fail_mss(self: ScreenCapture) -> object:
+        raise RuntimeError("display no disponible")
+
+    monkeypatch.setattr(ScreenCapture, "_ensure_mss", _fail_mss)
+
+    dry_capture = ScreenCapture(
+        idle_fps=10.0,
+        solving_dots_fps=30.0,
+        clock=lambda: 0.0,
+        sleeper=lambda _: None,
+        fallback_size=(1680, 976),
+    )
+    frame = dry_capture.grab()
+    assert frame.shape == (976, 1680, 3)
+    assert int(frame.sum()) == 0
+
+    real_capture = ScreenCapture(
+        idle_fps=10.0,
+        solving_dots_fps=30.0,
+        clock=lambda: 0.0,
+        sleeper=lambda _: None,
+        fallback_size=None,
+    )
+    with pytest.raises(RuntimeError, match="display no disponible"):
+        real_capture.grab()
+

@@ -11,6 +11,7 @@ from core.controller import BotController, DryRunInputDriver
 from core.state_machine import FishingStateMachine
 from core.types import Point, ROI, State
 from main import KillSwitchRegistrationError, setup_kill_switch
+from vision.minigame_tracker import MinigameState
 
 
 class FakeKillSwitch:
@@ -52,11 +53,20 @@ class DummyTracker:
         _ = frame
         return [Point(10, 10), Point(20, 20)]
 
+    def analyze(self, frame: np.ndarray) -> MinigameState:
+        _ = frame
+        return MinigameState(
+            active=True,
+            bar_ratio=0.80,
+            start_node=Point(10, 10),
+            ordered_nodes=(Point(10, 10), Point(20, 20)),
+        )
+
 
 class DummyClassifier:
-    def detect_item_notice(self, frame: np.ndarray) -> bool:
+    def detect_shard_drop(self, frame: np.ndarray) -> str | None:
         _ = frame
-        return False
+        return None
 
     def detect_battle_menu(self, frame: np.ndarray) -> bool:
         _ = frame
@@ -70,9 +80,29 @@ class DummyClassifier:
         _ = frame
         return False
 
-    def detect_fishing_return(self, frame: np.ndarray) -> bool:
+    def detect_corrupt_powerful_banner(self, frame: np.ndarray) -> bool:
         _ = frame
         return False
+
+    def detect_corrupt_appeared_banner(self, frame: np.ndarray) -> bool:
+        _ = frame
+        return False
+
+    def detect_corrupt_card(self, frame: np.ndarray) -> bool:
+        _ = frame
+        return False
+
+    def detect_entry_sparkle(self, frame: np.ndarray):
+        _ = frame
+        return None
+
+    def detect_wisp(self, prev_frame: np.ndarray, curr_frame: np.ndarray) -> bool:
+        _ = prev_frame, curr_frame
+        return False
+
+    def classify_name(self, frame: np.ndarray) -> tuple[str | None, float]:
+        _ = frame
+        return None, 0.0
 
     def classify_encounter(self, frame: np.ndarray):  # pragma: no cover
         raise AssertionError("No debería invocarse cuando el kill-switch está activo")

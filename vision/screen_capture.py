@@ -24,10 +24,12 @@ class ScreenCapture:
         sleeper: Callable[[float], None] = time.sleep,
         fallback_size: tuple[int, int] | None = None,
         default_roi: ROI | None = None,
+        resolving_outcome_fps: float = 12.0,
     ) -> None:
-        if idle_fps <= 0 or solving_dots_fps <= 0:
-            raise ValueError("idle_fps y solving_dots_fps deben ser mayores a cero.")
+        if idle_fps <= 0 or resolving_outcome_fps <= 0 or solving_dots_fps <= 0:
+            raise ValueError("Las frecuencias de captura deben ser mayores a cero.")
         self.idle_fps = idle_fps
+        self.resolving_outcome_fps = resolving_outcome_fps
         self.solving_dots_fps = solving_dots_fps
         self._active_fps = idle_fps
         self._clock = clock
@@ -43,9 +45,20 @@ class ScreenCapture:
         """FPS objetivo actualmente configurado."""
         return self._active_fps
 
+    def set_capture_mode(self, mode: str) -> None:
+        """Configura el rate-limit según el modo: ``idle``, ``resolving`` o ``solving``."""
+        if mode == "solving":
+            self._active_fps = self.solving_dots_fps
+        elif mode == "resolving":
+            self._active_fps = self.resolving_outcome_fps
+        elif mode == "idle":
+            self._active_fps = self.idle_fps
+        else:
+            raise ValueError(f"Modo de captura no válido: {mode!r}")
+
     def set_solving_mode(self, solving: bool) -> None:
         """Cambia entre frecuencia baja (espera) y alta (SOLVING_DOTS)."""
-        self._active_fps = self.solving_dots_fps if solving else self.idle_fps
+        self.set_capture_mode("solving" if solving else "idle")
 
     def _ensure_mss(self) -> object:
         if self._sct is None:
@@ -67,15 +80,14 @@ class ScreenCapture:
     def grab(self, roi: ROI | None = None) -> np.ndarray:
         """Captura un ROI (o ``default_roi`` / monitor principal) y devuelve un array BGR."""
         self._enforce_rate_limit()
-        sct = self._ensure_mss()
-
         target_roi = roi if roi is not None else self.default_roi
-        if target_roi is not None:
-            monitor = target_roi.to_mss_monitor()
-        else:
-            monitor = sct.monitors[1]  # type: ignore[attr-defined]
 
         try:
+            sct = self._ensure_mss()
+            if target_roi is not None:
+                monitor = target_roi.to_mss_monitor()
+            else:
+                monitor = sct.monitors[1]  # type: ignore[attr-defined]
             raw = sct.grab(monitor)  # type: ignore[attr-defined]
             bgra = np.asarray(raw, dtype=np.uint8)
             return bgra[:, :, :3].copy()

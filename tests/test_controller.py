@@ -7,7 +7,9 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from core.controller import BotController, DryRunInputDriver
+import pytest
+
+from core.controller import BotController, DryRunInputDriver, RunListError
 from core.types import Point
 
 UI_POINTS = {
@@ -129,4 +131,32 @@ def test_window_origin_offset_applied_to_driver(tmp_path: Path) -> None:
         ("click", (Point(300, 332), "left")),
         ("move_to", Point(50, 92)),
     ]
+
+
+def test_run_list_invalid_json_and_schema_raise_run_list_error(tmp_path: Path) -> None:
+    run_list_file = tmp_path / "run_list.json"
+    bad_json = '{\n  "run_list": [\n    "Goppie",\n  ]\n}\n'
+    run_list_file.write_text(bad_json, encoding="utf-8")
+
+    controller = BotController(
+        run_list_path=run_list_file,
+        corruptos_csv_path=tmp_path / "corruptos.csv",
+        ui_points=UI_POINTS,
+        dry_run=True,
+    )
+
+    with pytest.raises(RunListError, match="run_list.json inválido"):
+        controller.load_run_list()
+
+    with pytest.raises(RunListError, match="run_list.json inválido"):
+        controller.add_to_run_list("Arketta")
+
+    # El archivo inválido no debe ser sobrescrito ni truncado
+    assert run_list_file.read_text(encoding="utf-8") == bad_json
+
+    # Esquema incorrecto (run_list no es lista de textos)
+    run_list_file.write_text(json.dumps({"run_list": [123]}), encoding="utf-8")
+    with pytest.raises(RunListError, match="run_list.json inválido"):
+        controller.load_run_list()
+
 
